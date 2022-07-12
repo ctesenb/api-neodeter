@@ -23,103 +23,72 @@ def get_db():
 def main():
    return RedirectResponse(url="/docs/")
 
-@app.get('/marcaciones/',response_model=List[schemas.Marcation])
-def show_marcaciones(db:Session=Depends(get_db)):
-    marcaciones = db.query(models.Marcation).all()
-    return marcaciones
+@app.get('/produccion/',response_model=List[schemas.QrEnvasadoCab])
+def show_producciones(db: Session = Depends(get_db)):
+    producciones = db.query(models.QrEnvasadoCab).all()
+    return producciones
 
-#Crear marcacion
-@app.post('/marcaciones/',response_model=schemas.Marcation)
-def create_marcaciones(entrada:schemas.Marcation,db:Session=Depends(get_db)):
-    marcacion = models.Marcation(fullname = entrada.fullname,email=entrada.email,area=entrada.area,geolocation=entrada.geolocation,hora=entrada.hora,fecha=entrada.fecha)
-    db.add(marcacion)
+@app.get('/produccion/{Id}',response_model=schemas.QrEnvasadoCab)
+def show_produccion(Id: int,db: Session = Depends(get_db)):
+    produccion = db.query(models.QrEnvasadoCab).filter(models.QrEnvasadoCab.Id == Id).first()
+    return produccion
+
+@app.post('/produccion/',response_model=schemas.QrEnvasadoCab)
+def create_produccion(entrada: schemas.QrEnvasadoCab, db:Session=Depends(get_db)):
+    produccion = models.QrEnvasadoCab(FechaHora=entrada.FechaHora,Id_google=entrada.Id_google,OrdenEnvasado=entrada.OrdenEnvasado)
+    db.add(produccion)
     db.commit()
-    db.refresh(marcacion)
-    return marcacion
+    db.refresh(produccion)
+    return produccion
 
-@app.delete('/marcaciones/{marcacion_id}',response_model=schemas.Respuesta)
-def delete_mercaciones(marcacion_id:int,db:Session=Depends(get_db)):
-    marcacion = db.query(models.Marcation).filter_by(id=marcacion_id).first()
-    db.delete(marcacion)
+@app.put('/produccion/{Id}',response_model=schemas.QrEnvasadoCab)
+def put_produccion(Id: int,entrada: schemas.QrEnvasadoCab, db:Session=Depends(get_db)):
+    produccion = db.query(models.QrEnvasadoCab).filter(models.QrEnvasadoCab.Id == Id).first()
+    produccion.FechaHora = entrada.FechaHora
+    produccion.Id_google = entrada.Id_google
+    produccion.OrdenEnvasado = entrada.OrdenEnvasado
     db.commit()
-    respuesta = schemas.Respuesta(mensaje="Eliminado exitosamente")
-    return respuesta
+    db.refresh(produccion)
+    return produccion
 
-@app.get('/geolocation/',response_model=List[schemas.Geolocation])
-def show_geolocations(db:Session=Depends(get_db)):
-    geolocations = db.query(models.Geolocation).all()
-    return geolocations
-
-#Si la geolocalizacion y el area existen, devolver "existe" y sino "no existe"
-@app.get('/geolocation/{geolocation}/{area}/',response_model=schemas.Respuesta)
-def show_geolocation(geolocation:str,area:str,db:Session=Depends(get_db)):
-    geolocation = db.query(models.Geolocation).filter_by(geolocation=geolocation,area=area).first()
-    if geolocation:
-        respuesta = schemas.Respuesta(mensaje="Existe")
-    else:
-        respuesta = schemas.Respuesta(mensaje="No existe")
-    return respuesta
-
-@app.post('/geolocation/',response_model=schemas.Geolocation)
-def create_geolocations(entrada:schemas.Geolocation,db:Session=Depends(get_db)):
-    geolocation = models.Geolocation(area= entrada.area, geolocation = entrada.geolocation)
-    db.add(geolocation)
+@app.deleted('/produccion/{Id}',response_model=schemas.QrEnvasadoCab)
+def delete_produccion(Id: int,db: Session = Depends(get_db)):
+    produccion = db.query(models.QrEnvasadoCab).filter(models.QrEnvasadoCab.Id == Id).first()
+    db.delete(produccion)
     db.commit()
-    db.refresh(geolocation)
-    return geolocation
+    return produccion
 
-@app.delete('/geolocation/{geolocation_id}',response_model=schemas.Respuesta)
-def delete_geolocation(geolocation_id:int,db:Session=Depends(get_db)):
-    geolocation = db.query(models.Geolocation).filter_by(id=geolocation_id).first()
-    db.delete(geolocation)
+@app.get('/pDetalles/',response_model=List[schemas.QrEnvasadoDet])
+def get_pDetalles(db: Session = Depends(get_db)):
+    pDetalles = db.query(models.QrEnvasadoDet).all()
+    return pDetalles
+
+@app.get('/pDetalles/{Id}',response_model=schemas.QrEnvasadoDet)
+def get_pDetalle(Id: int,db: Session = Depends(get_db)):
+    pDetalle = db.query(models.QrEnvasadoDet).filter(models.QrEnvasadoDet.Id == Id).first()
+    return pDetalle
+
+@app.post('/pDetalle/',response_model=schemas.QrEnvasadoDet)
+def post_pDetalle(entrada: schemas.QrEnvasadoDet, db:Session=Depends(get_db)):
+    pDetalle = models.QrEnvasadoDet(Id_cabecera=entrada.Id_cabecera,codProducto=entrada.codProducto,cantidad=entrada.cantidad)
+    db.add(pDetalle)
     db.commit()
-    respuesta = schemas.Respuesta(mensaje="Eliminado exitosamente")
-    return respuesta
+    db.refresh(pDetalle)
+    return pDetalle
 
-@app.put('/geolocation/{geolocation_id}',response_model=schemas.Geolocation)
-def update_geolocation(geolocation_id:int,entrada:schemas.Geolocation,db:Session=Depends(get_db)):
-    geolocation = db.query(models.Geolocation).filter_by(id=geolocation_id).first()
-    geolocation.area = entrada.area
-    geolocation.geolocation = entrada.geolocation
+@app.put('/pDetalle/{Id}',response_model=schemas.QrEnvasadoDet)
+def pust_pDetalle(Id: int,entrada: schemas.QrEnvasadoDet, db:Session=Depends(get_db)):
+    pDetalle = db.query(models.QrEnvasadoDet).filter(models.QrEnvasadoDet.Id == Id).first()
+    pDetalle.Id_cabecera = entrada.Id_cabecera
+    pDetalle.codProducto = entrada.codProducto
+    pDetalle.cantidad = entrada.cantidad
     db.commit()
-    db.refresh(geolocation)
-    return geolocation
+    db.refresh(pDetalle)
+    return pDetalle
 
-@app.get('/empresa/',response_model=List[schemas.Empresa])
-def show_empresas(db:Session=Depends(get_db)):
-    empresas = db.query(models.Empresa).all()
-    return empresas
-
-#Si el ruc de la empresa existe, devolver "existe" y sino "no existe"
-@app.get('/empresa/{ruc}/',response_model=schemas.Respuesta)
-def show_empresa(ruc:str,db:Session=Depends(get_db)):
-    empresa = db.query(models.Empresa).filter_by(ruc=ruc).first()
-    if empresa:
-        respuesta = schemas.Respuesta(mensaje="Existe")
-    else:
-        respuesta = schemas.Respuesta(mensaje="No existe")
-    return respuesta
-
-@app.post('/empresa/',response_model=schemas.Empresa)
-def create_empresas(entrada:schemas.Empresa,db:Session=Depends(get_db)):
-    empresa = models.Empresa(empresa = entrada.empresa, ruc = entrada.ruc)
-    db.add(empresa)
+@app.delete('/pDetalle/{Id}',response_model=schemas.QrEnvasadoDet)
+def delete_pDetalle(Id: int,db: Session = Depends(get_db)):
+    pDetalle = db.query(models.QrEnvasadoDet).filter(models.QrEnvasadoDet.Id == Id).first()
+    db.delete(pDetalle)
     db.commit()
-    db.refresh(empresa)
-    return empresa
-
-@app.delete('/empresa/{empresa_id}',response_model=schemas.Respuesta)
-def delete_empresa(empresa_id:int,db:Session=Depends(get_db)):
-    empresa = db.query(models.Empresa).filter_by(id=empresa_id).first()
-    db.delete(empresa)
-    db.commit()
-    respuesta = schemas.Respuesta(mensaje="Eliminado exitosamente")
-    return respuesta
-
-@app.put('/empresa/{empresa_id}',response_model=schemas.Empresa)
-def update_empresas(empresa_id:int,entrada:schemas.EmpresaUpdate,db:Session=Depends(get_db)):
-    empresa = db.query(models.Empresa).filter_by(id=empresa_id).first()
-    empresa.ruc = entrada.ruc
-    db.commit()
-    db.refresh(empresa)
-    return empresa
+    return pDetalle
