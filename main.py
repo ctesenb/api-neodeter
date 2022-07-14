@@ -21,7 +21,7 @@ def get_db():
 
 @app.get("/")
 def main():
-   return RedirectResponse(url="/docs/")
+    return RedirectResponse(url="/docs/")
 
 @app.get('/produccion/',response_model=List[schemas.QrEnvasadoCab])
 def show_producciones(db: Session = Depends(get_db)):
@@ -92,3 +92,10 @@ def delete_pDetalle(Id: int,db: Session = Depends(get_db)):
     db.delete(pDetalle)
     db.commit()
     return pDetalle
+
+#La segunda etiqueta es EL NOMBRE DEL PRODUCTO, eso lo jala de una API que apunta a la misma BD a la tabla IF5PLA.... Select F5NOMPRO FROM IF5PLA WHERE F5CODPRO = {dato del Qr}
+@app.get('/IF5PLA/{codProducto}')
+def get_producto(codProducto: str,db: Session = Depends(get_db)):
+    producto = db.query('SELECT F5NOMPRO FROM IF5PLA WHERE F5CODPRO = codProducto',params={'codProducto':codProducto}).first()
+    return producto
+
